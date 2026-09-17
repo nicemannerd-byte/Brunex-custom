@@ -1,0 +1,38 @@
+(()=>{'use strict';
+const controlUrl=localStorage.getItem('brunexControlUrl')||'ws://127.0.0.1:8420';
+window.BRUNEX_CONTROL_URL=controlUrl;
+function connectController(){
+ if(typeof window.io!=='function'){console.warn('BrunexBots: Socket.IO unavailable');return;}
+ try{if(window.socket&&window.socket.disconnect)window.socket.disconnect();}catch(_){ }
+ window.socket=window.io.connect(controlUrl,{transports:['websocket','polling']});
+ window.socket.on('connect',()=>console.log('BrunexBots controller connected:',controlUrl));
+ window.socket.on('disconnect',()=>console.log('BrunexBots controller disconnected'));
+ window.socket.on('botCount',n=>{const e=document.getElementById('minionCount');if(e)e.textContent=n;});
+}
+function loadSocket(){
+ const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js';s.onload=connectController;s.onerror=()=>console.warn('BrunexBots: could not load Socket.IO');document.head.appendChild(s);
+}
+function makeUi(){
+ if(document.getElementById('brunex-ui'))return;
+ const st=document.createElement('style');st.textContent='#brunex-ui{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:999998;background:rgba(20,15,35,.94);color:#fff;border:1px solid #7b4dff;border-radius:0 0 12px 12px;padding:8px 12px;font:12px Arial;display:flex;gap:8px;align-items:center;box-shadow:0 5px 25px rgba(0,0,0,.35)}#brunex-ui button,#brunex-ui select{background:#29243d;color:#fff;border:1px solid #51486d;border-radius:7px;padding:6px 9px}#brunex-ui button{cursor:pointer}#brunex-ui .on{background:#6d4aff}.bm-count{min-width:70px}';document.head.appendChild(st);
+ const ui=document.createElement('div');ui.id='brunex-ui';ui.innerHTML='<strong>BrunexBots</strong><span class="bm-count">Bots: <b id="minionCount">0</b></span><select id="bm-server"><option value="">Game server</option><option value="ws://15.235.218.24:443/slither">Private server 15.235.218.24:443</option></select><button id="bm-start">Start</button><button id="bm-stop">Stop</button>';
+ document.body.prepend(ui);
+ const sel=ui.querySelector('#bm-server');sel.value=localStorage.getItem('brunexGameServer')||'';
+ sel.onchange=()=>{if(sel.value)localStorage.setItem('brunexGameServer',sel.value);};
+ ui.querySelector('#bm-start').onclick=()=>{const server=sel.value||localStorage.getItem('brunexGameServer');if(window.socket&&server)window.socket.emit('start',{ip:server,origin:location.origin});};
+ ui.querySelector('#bm-stop').onclick=()=>{if(window.socket)window.socket.emit('stop');};
+}
+function trackPosition(){
+ if(!window.PositionTracker||!window.socket)return;
+ try{window.PositionTracker.initialize(window.socket);}catch(_){ }
+ setInterval(()=>{
+   let x=null,y=null;
+   const s=window.snake||window.slither;
+   if(s&&Number.isFinite(s.xx)&&Number.isFinite(s.yy)){x=s.xx;y=s.yy;}
+   else if(Number.isFinite(window.xx)&&Number.isFinite(window.yy)){x=window.xx;y=window.yy;}
+   if(x!==null&&y!==null)window.socket.emit('movement',{x,y});
+ },100);
+}
+function init(){makeUi();loadSocket();setTimeout(trackPosition,1500);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
