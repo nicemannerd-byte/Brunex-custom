@@ -10,7 +10,8 @@ function normalizeServer(value) {
     const s = String(value || '').trim();
     if (/^wss?:\/\//i.test(s)) return s;
     if (/^https?:\/\//i.test(s)) return s.replace(/^http/i, 'ws');
-    return `ws://${s.replace(/^\/+/, '')}`;
+    if (/:443(?:\/|$)/.test(s)) return `wss://${s}/slither`;
+    return `ws://${s}/slither`;
 }
 
 class BotManager {
@@ -37,8 +38,8 @@ class BotManager {
     setTornadoSettings(s){this._0xtornadoSettings={...this._0xtornadoSettings,...(s||{})};for(const b of this._0x2a7c)b.setTornadoSettings(this._0xtornadoSettings);}
     setConnectedCount(n){this._0x3e1a=Math.max(0,Number(n)||0);}
     getConnectedCount(){return this._0x3e1a;}
-    getStatus(){const bots=this._0x2a7c.map(b=>({id:b.id,name:b.name||`Bot ${b.id}`,state:b.getState?b.getState():(b.hasConnected?'connected':'connecting'),snakeId:b.snakeID}));return{service:'BrunexBots',ok:true,running:this.running,server:this._0x5f8e,mode:this.mode,connected:this._0x3e1a,connecting:bots.filter(b=>b.state==='connecting').length,maxBots:this._0x9f2c,target:this.targetName||'',bots};}
-    logStatus(){if(process.env.STATUS_LOG!=='0')console.log(`[BrunexBots] ${this._0x3e1a}/${this._0x2a7c.length} connected, mode=${this.mode}`);}
+    getStatus(){const bots=this._0x2a7c.map(b=>({id:b.id,name:b.name||`Brunex Bot #${String(b.id).padStart(3,'0')}`,state:b.getState?b.getState():(b.hasConnected?'connected':'connecting'),snakeId:b.snakeID,lastUrl:b.lastUrl||'',lastError:b.lastError||''}));return{service:'BrunexBots',ok:true,running:this.running,server:this._0x5f8e,mode:this.mode,connected:this._0x3e1a,joined:bots.filter(b=>b.state==='joined').length,connecting:bots.filter(b=>b.state==='connecting').length,reconnecting:bots.filter(b=>b.state==='reconnecting').length,maxBots:this._0x9f2c,target:this.targetName||'',bots};}
+    logStatus(){if(process.env.STATUS_LOG!=='0')console.log(`[BrunexBots] joined=${this._0x2a7c.filter(b=>b.joined).length} connected=${this._0x3e1a}/${this._0x2a7c.length} mode=${this.mode}`);}
     sendCountUpdate(){this.logStatus();}
     get botCount(){return this._0x9f2c;}
     get xPos(){return this._0x4c6f;} get yPos(){return this._0x8a2e;}
