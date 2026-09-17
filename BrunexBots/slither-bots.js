@@ -8,34 +8,36 @@ const PORT = Number.parseInt(process.env.CONTROL_PORT || '8420', 10);
 const HOST = process.env.CONTROL_HOST || '0.0.0.0';
 const manager = new BotManager();
 
+const state = () => manager.getStatus();
+const json = (res, code, value) => { res.writeHead(code, {'Content-Type':'application/json; charset=utf-8','Access-Control-Allow-Origin':'*'}); res.end(JSON.stringify(value)); };
+
 const httpServer = http.createServer((req, res) => {
-    if (req.url === '/' || req.url === '/health') {
-        res.writeHead(200, {'Content-Type':'application/json; charset=utf-8','Access-Control-Allow-Origin':'*'});
-        return res.end(JSON.stringify({service:'BrunexBots',ok:true,running:manager.isRunning(),mode:manager.mode,connected:manager.getConnectedCount(),maxBots:manager.botCount}));
-    }
+    if (req.url === '/' || req.url === '/health' || req.url === '/status') return json(res, 200, state());
     res.writeHead(404); res.end('Not found');
 });
 
 const wss = new WebSocket.Server({noServer:true});
 const clients = new Set();
-const state = () => ({type:'state',running:manager.isRunning(),mode:manager.mode,connected:manager.getConnectedCount(),maxBots:manager.botCount,target:manager.targetName||''});
 const broadcast = msg => { const text=JSON.stringify(msg); for(const ws of clients) if(ws.readyState===WebSocket.OPEN) ws.send(text); };
 
 wss.on('connection', ws => {
-    clients.add(ws); ws.send(JSON.stringify(state()));
+    clients.add(ws); ws.send(JSON.stringify({type:'state',...state()}));
     ws.on('message', raw => {
-        let msg; try { msg=JSON.parse(raw.toString()); } catch (_) { return; }
+        let msg; try { msg=JSON.parse(raw.toString()); } catch (_) { ws.send(JSON.stringify({type:'error',message:'Invalid JSON'})); return; }
         try {
-            if(msg.type==='start'){ manager.setServer(msg.server,msg.origin||'http://localhost'); manager._0x8c7f(); }
+            if(msg.type==='start') manager.setServer(msg.server,msg.origin||'http://localhost'), manager.start();
             else if(msg.type==='stop') manager.stop();
             else if(msg.type==='movement') manager.updatePosition(msg.x,msg.y);
             else if(msg.type==='mode') manager.setMode(msg.mode);
             else if(msg.type==='target') manager.setTarget(msg.name,msg.x,msg.y);
-            else if(msg.type==='boost') manager._0xsetBoostState(msg.enabled);
-            else if(msg.type==='tornadoSettings') manager._0x4f2a(msg.settings);
-            else if(msg.type==='cosmetic') manager._0x3f8b(msg.value);
-            else if(msg.type==='tag') manager._0x7a9c(msg.value);
-            broadcast(state());
+            else if(msg.type==='clearTarget') manager.clearTarget();
+            else if(msg.type==='boost') manager.setBoostState(msg.enabled);
+            else if(msg.type==='tornadoSettings') manager.setTornadoSettings(msg.settings);
+            else if(msg.type==='cosmetic') manager.setCosmetic(msg.value);
+            else if(msg.type==='tag') manager.setTag(msg.value);
+            else if(msg.type==='status') return ws.send(JSON.stringify({type:'status',...state()}));
+            else return ws.send(JSON.stringify({type:'error',message:`Unknown command: ${msg.type}`}));
+            broadcast({type:'state',...state()});
         } catch(e) { ws.send(JSON.stringify({type:'error',message:e.message})); }
     });
     ws.on('close',()=>clients.delete(ws));
@@ -49,10 +51,11 @@ httpServer.on('upgrade',(request,socket,head)=>{
 httpServer.listen(PORT,HOST,()=>{
     console.log(`BrunexBots controller listening on ${HOST}:${PORT}`);
     console.log(`Control endpoint: /control`);
+    console.log(`Status: http://127.0.0.1:${PORT}/status`);
     console.log(`Max bots: ${manager.botCount}`);
-    console.log('Modes: F Follow | W Wander | T Tornado | S Spiral | H Head Hunter | C Focus | Q Stop');
+    console.log('Modes: follow | wander | tornado | spiral | headhunter | focus | stop');
 });
-setInterval(()=>broadcast(state()),3000).unref();
+setInterval(()=>broadcast({type:'state',...state()}),3000).unref();
 
 function shutdown(){ manager.stop(); for(const ws of clients){try{ws.close();}catch(_){}} httpServer.close(()=>process.exit(0)); setTimeout(()=>process.exit(0),3000).unref(); }
 process.on('SIGINT',shutdown); process.on('SIGTERM',shutdown);
