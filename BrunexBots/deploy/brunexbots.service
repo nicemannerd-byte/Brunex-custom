@@ -1,5 +1,5 @@
 [Unit]
-Description=BrunexBots private-server controller
+Description=BrunexBots private/test-server controller
 After=network-online.target
 Wants=network-online.target
 
@@ -10,7 +10,7 @@ ExecStart=/usr/bin/node /opt/brunexbots/slither-bots.js
 Restart=always
 RestartSec=5
 Environment=MAX_BOTS=100
-Environment=SPAWN_DELAY_MS=100
+Environment=SPAWN_DELAY_MS=250
 Environment=CONTROL_PORT=8420
 Environment=NODE_ENV=production
 
