@@ -8,7 +8,7 @@
     "check": "node --check slither-bots.js && node --check src/Bot.js && node --check src/BotManager.js && node --check src/SocketHandler.js"
   },
   "dependencies": {
-    "socket.io": "1.7.3",
+    "socket.io": "^4.8.1",
     "ws": "^8.18.0",
     "socks": "^2.8.7",
     "https-proxy-agent": "^7.0.6"
