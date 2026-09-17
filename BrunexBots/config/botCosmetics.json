@@ -1,0 +1,11 @@
+{
+  "randomizeCosmetics": false,
+  "randomizeTags": false,
+  "cosmetics": {
+    "11": "default"
+  },
+  "tagRange": {
+    "min": 1,
+    "max": 12
+  }
+}
