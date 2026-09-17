@@ -6,13 +6,6 @@ function numberEnv(name, fallback, min, max) {
     const n = Number(process.env[name]);
     return Number.isFinite(n) ? Math.max(min, Math.min(max, Math.floor(n))) : fallback;
 }
-function normalizeServer(value) {
-    const s = String(value || '').trim();
-    if (/^wss?:\/\//i.test(s)) return s;
-    if (/^https?:\/\//i.test(s)) return s.replace(/^http/i, 'ws');
-    if (/:443(?:\/|$)/.test(s)) return `wss://${s}/slither`;
-    return `ws://${s}/slither`;
-}
 
 class BotManager {
     constructor() {
@@ -21,7 +14,7 @@ class BotManager {
         this._0xtornadoSettings={size:2000,separation:800,finalAng:90,rOC:.5,rotationDir:1}; this._0x5b7c=11; this._0x9d1e=12; this._0xboostState=false;
         this._0xbotInterval=null; this.running=false; this.mode='follow'; this.targetName=''; this.targetXPos=null; this.targetYPos=null;
     }
-    setServer(server,origin){this._0x5f8e=normalizeServer(server);if(origin)this._0x1d3b=String(origin);}
+    setServer(server,origin){this._0x5f8e=String(server||'').trim();if(origin)this._0x1d3b=String(origin);}
     start(){this.stopBots();if(!this._0x5f8e)throw new Error('No game server configured');this.running=true;let id=0;const spawn=()=>{if(!this.running||id>=this._0x9f2c){clearInterval(this._0xbotInterval);this._0xbotInterval=null;return;}const bot=new Bot(++id);Object.assign(bot,{server:this._0x5f8e,origin:this._0x1d3b,proxies:[],Proxies:[],botManager:this,cosmetic:this._0x5b7c,tag:this._0x9d1e,persistentBoost:this._0xboostState});bot.setMode(this.mode);bot.setTornadoSettings(this._0xtornadoSettings);if(this.targetXPos!==null&&this.targetYPos!==null)bot.setTarget(this.targetXPos,this.targetYPos);this._0x2a7c.push(bot);try{bot.connect();}catch(e){console.error(`[Bot ${id}] ${e.message}`);}this.logStatus();};spawn();this._0xbotInterval=setInterval(spawn,this.spawnDelay);}
     stopBots(){this.running=false;if(this._0xbotInterval)clearInterval(this._0xbotInterval);this._0xbotInterval=null;for(const bot of this._0x2a7c)try{bot.disconnect();}catch(_){}this._0x2a7c=[];this._0x3e1a=0;this.logStatus();}
     stop(){this.stopBots();}
