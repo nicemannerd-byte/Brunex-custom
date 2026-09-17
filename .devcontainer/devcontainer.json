@@ -1,0 +1,13 @@
+{
+  "name": "BrunexBots",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "postCreateCommand": "cd BrunexBots && npm install",
+  "forwardPorts": [8420],
+  "portsAttributes": {
+    "8420": {
+      "label": "Brunex controller",
+      "protocol": "http",
+      "onAutoForward": "notify"
+    }
+  }
+}
