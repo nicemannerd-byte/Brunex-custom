@@ -1,16 +1,17 @@
 {
   "name": "brunexbots",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "main": "slither-bots.js",
   "scripts": {
     "start": "node slither-bots.js",
-    "check": "node --check slither-bots.js && node --check src/Bot.js && node --check src/BotManager.js && node --check src/SocketHandler.js"
+    "check": "node --check slither-bots.js && node --check src/Bot.js && node --check src/BotManager.js && node --check src/SocketHandler.js && node --check BrunexBots-Extensao/content.js && node --check BrunexBots-Extensao/inject.js && node --check BrunexBots-Extensao/mode-controls.js"
   },
+  "engines": { "node": ">=18" },
   "dependencies": {
-    "socket.io": "^4.8.1",
-    "ws": "^8.18.0",
+    "https-proxy-agent": "^7.0.6",
     "socks": "^2.8.7",
-    "https-proxy-agent": "^7.0.6"
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.0"
   }
 }
