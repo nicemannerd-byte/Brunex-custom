@@ -2,69 +2,30 @@
 
 class SocketHandler {
     constructor(io, bots, manager) {
-        this.io = io;
-        this.bots = bots;
-        this.manager = manager;
-        this._setup();
+        this.io = io; this.bots = bots; this.manager = manager;
+        setInterval(() => this._0x6d4e(), 3000).unref();
+        io.on('connection', socket => this.bind(socket));
     }
-
-    _0x6d4e() {
-        this.io.emit('botCount', this.manager.getConnectedCount());
-        this.io.emit('mode', this.manager.getMode());
-    }
-
-    _setup() {
-        setInterval(() => this._0x6d4e(), 3000);
-        this.io.on('connection', socket => {
-            socket.emit('botCount', this.manager.getConnectedCount());
-            socket.emit('mode', this.manager.getMode());
-
-            socket.on('start', data => {
-                try {
-                    if (!data || !data.ip) return socket.emit('controllerError', 'Missing bot server URL');
-                    this.manager._0x3f7b(String(data.ip), data.origin || 'http://localhost');
-                    this.manager._0x8c7f();
-                    socket.emit('requestPosition');
-                } catch (err) { socket.emit('controllerError', err.message); }
-            });
-
-            socket.on('stop', () => this.manager.stopBots());
-
-            const updatePosition = data => {
-                if (data && Number.isFinite(Number(data.x)) && Number.isFinite(Number(data.y))) this.manager.updatePosition(data.x, data.y);
-            };
-            socket.on('movement', updatePosition);
-            socket.on('pos', updatePosition);
-
-            socket.on('setMode', data => {
-                if (this.manager.setMode(data && data.mode)) this.io.emit('mode', this.manager.getMode());
-                else socket.emit('controllerError', `Unknown mode: ${data && data.mode}`);
-            });
-
-            socket.on('target', data => { if (data) this.manager.updateTarget(data.x, data.y, data.name); });
-            socket.on('setTarget', data => { if (data) this.manager.setTarget(data.name, data.x, data.y); });
-            socket.on('clearTarget', () => this.manager.clearTarget());
-
-            socket.on('toggleBoostSpeed', data => {
-                this.manager._0xsetBoostState(!!(data && data.shouldBoost));
-                for (const bot of this.manager._0x8b5c()) if (bot && typeof bot.boostSpeed === 'function') bot.boostSpeed(this.manager._0xgetBoostState());
-            });
-            socket.on('toggleZigZagMovement', () => this.manager._0x9c2d());
-            socket.on('toggleRandomMovement', () => this.manager._0x1f3e());
-            socket.on('setCosmetic', data => { if (data && data.cosmetic !== undefined) this.manager._0x3f8b(data.cosmetic); });
-            socket.on('setTag', data => { if (data && data.tag !== undefined) this.manager._0x7a9c(data.tag); });
-            socket.on('getCosmeticInfo', () => socket.emit('cosmeticInfo', { currentCosmetic: this.manager._0x4e8f(), currentTag: this.manager._0x9b2a() }));
-            socket.on('toggleTornadoMovement', () => {
-                this.manager.setMode(this.manager.getMode() === 'tornado' ? 'follow' : 'tornado');
-                this.io.emit('mode', this.manager.getMode());
-            });
-            socket.on('toggleSpiralMovement', () => {
-                this.manager.setMode(this.manager.getMode() === 'spiral' ? 'follow' : 'spiral');
-                this.io.emit('mode', this.manager.getMode());
-            });
-            socket.on('setTornadoSettings', settings => { if (settings) this.manager._0x4f2a(settings); });
-        });
+    _0x6d4e() { this.io.emit('botCount', this.manager.getConnectedCount()); this.io.emit('mode', this.manager.getMode()); }
+    bind(socket) {
+        socket.emit('botCount', this.manager.getConnectedCount()); socket.emit('mode', this.manager.getMode());
+        socket.on('start', d => { try { if (!d?.ip) throw new Error('Missing bot server URL'); this.manager.setServer(d.ip, d.origin || 'http://localhost'); this.manager._0x8c7f(); socket.emit('started', {maxBots:this.manager.botCount}); this._0x6d4e(); } catch(e) { socket.emit('controllerError', e.message); } });
+        socket.on('stop', () => { this.manager.stopBots(); this._0x6d4e(); });
+        const pos = d => { if (d && Number.isFinite(Number(d.x)) && Number.isFinite(Number(d.y))) this.manager.updatePosition(d.x,d.y); };
+        socket.on('movement', pos); socket.on('pos', pos);
+        socket.on('setMode', d => { const mode=this.manager.setMode(d?.mode); socket.emit('mode',mode); this._0x6d4e(); });
+        socket.on('setTarget', d => { if(d) this.manager.setTarget(d.name,d.x,d.y); });
+        socket.on('target', d => { if(d) this.manager.updateTarget(d.x,d.y,d.name); });
+        socket.on('clearTarget', () => this.manager.clearTarget());
+        socket.on('toggleBoostSpeed', d => this.manager._0xsetBoostState(!!d?.shouldBoost));
+        socket.on('toggleRandomMovement', () => this.manager.setMode('wander'));
+        socket.on('toggleZigZagMovement', () => this.manager._0x9c2d());
+        socket.on('toggleTornadoMovement', () => this.manager._0x3d8f());
+        socket.on('toggleSpiralMovement', () => this.manager._0xToggleFixedCircle());
+        socket.on('setTornadoSettings', d => this.manager._0x4f2a(d));
+        socket.on('setCosmetic', d => { if(d?.cosmetic!==undefined) this.manager._0x3f8b(d.cosmetic); });
+        socket.on('setTag', d => { if(d?.tag!==undefined) this.manager._0x7a9c(d.tag); });
+        socket.on('getCosmeticInfo', () => socket.emit('cosmeticInfo',{currentCosmetic:this.manager._0x4e8f(),currentTag:this.manager._0x9b2a()}));
     }
 }
-
 module.exports = SocketHandler;
