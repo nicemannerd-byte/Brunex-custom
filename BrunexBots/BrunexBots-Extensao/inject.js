@@ -36,7 +36,36 @@
     box.querySelector('#brunex-start').onclick=()=>send({type:'start',server:localStorage.getItem('brunexGameServer')||'ws://15.235.218.24:443/slither',origin:location.origin});
     box.querySelector('#brunex-stop').onclick=()=>send({type:'stop'});update();
   }
-  function track(){const s=window.snake||window.slither;if(s&&Number.isFinite(Number(s.xx))&&Number.isFinite(Number(s.yy)))send({type:'movement',x:Number(s.xx),y:Number(s.yy)});}
-  function init(){build();const url=localStorage.getItem('brunexControlUrl');if(url)window.brunexConnect(url);setInterval(track,100);}
+  function track(){
+  const s=window.snake||window.slither;
+  if(s&&Number.isFinite(Number(s.xx))&&Number.isFinite(Number(s.yy)))send({type:'movement',x:Number(s.xx),y:Number(s.yy)});
+}
+function worldSnapshot(){
+  const self=window.snake||window.slither;
+  const rawSnakes=window.snakes||window.snakeList||window.slitherSnakes||[];
+  const rawFoods=window.foods||window.food||window.foodList||[];
+  const snakes=[];
+  const foods=[];
+  const list=Array.isArray(rawSnakes)?rawSnakes:Object.values(rawSnakes||{});
+  for(const q of list){
+    if(!q||!Number.isFinite(Number(q.xx))||!Number.isFinite(Number(q.yy)))continue;
+    const pts=Array.isArray(q.pts)?q.pts:Array.isArray(q.points)?q.points:[];
+    const points=[];
+    for(const p of pts.slice(0,80)){
+      if(p&&Number.isFinite(Number(p.xx))&&Number.isFinite(Number(p.yy)))points.push({x:Number(p.xx),y:Number(p.yy)});
+      else if(p&&Number.isFinite(Number(p.x))&&Number.isFinite(Number(p.y)))points.push({x:Number(p.x),y:Number(p.y)});
+    }
+    const vx=Number.isFinite(Number(q.sp))?Math.cos(Number(q.eang||q.ang||0))*Number(q.sp):0;
+    const vy=Number.isFinite(Number(q.sp))?Math.sin(Number(q.eang||q.ang||0))*Number(q.sp):0;
+    snakes.push({id:q.id,x:Number(q.xx),y:Number(q.yy),vx,vy,angle:Number(q.eang||q.ang||0),points});
+  }
+  const flist=Array.isArray(rawFoods)?rawFoods:Object.values(rawFoods||{});
+  for(const f of flist.slice(0,600)){
+    if(f&&Number.isFinite(Number(f.xx))&&Number.isFinite(Number(f.yy)))foods.push({x:Number(f.xx),y:Number(f.yy)});
+    else if(f&&Number.isFinite(Number(f.x))&&Number.isFinite(Number(f.y)))foods.push({x:Number(f.x),y:Number(f.y)});
+  }
+  if(self)send({type:'world',world:{selfId:self.id==null?null:self.id,snakes,foods,timestamp:Date.now()}});
+}
+  function init(){build();const url=localStorage.getItem('brunexControlUrl');if(url)window.brunexConnect(url);setInterval(track,100);setInterval(worldSnapshot,150);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
