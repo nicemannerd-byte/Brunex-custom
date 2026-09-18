@@ -14,8 +14,7 @@ class BotManager{
  updatePosition(x,y){const nx=Number(x),ny=Number(y);if(Number.isFinite(nx)&&Number.isFinite(ny)){this._0x4c6f=nx;this._0x8a2e=ny;}}
  updateWorld(snapshot){this.headHunter.updateWorld(snapshot);}
  getHeadHunterTarget(bot){return this.headHunter.targetFor(bot);}
- getMovementTarget(){if(this.mode==='headhunter'){const bot=this._0x2a7c.find(b=>b&&b.id===this._activeBotId);if(bot)return this.getHeadHunterTarget(bot);}
- if((this.mode==='focus')&&Number.isFinite(this.targetXPos)&&Number.isFinite(this.targetYPos))return{x:this.targetXPos,y:this.targetYPos};return{x:this._0x4c6f,y:this._0x8a2e};}
+ getMovementTarget(){if(this.mode==='focus'&&Number.isFinite(this.targetXPos)&&Number.isFinite(this.targetYPos))return{x:this.targetXPos,y:this.targetYPos};return{x:this._0x4c6f,y:this._0x8a2e};}
  setBoostState(v){this._0xboostState=!!v;for(const b of this._0x2a7c)b.boostSpeed(this._0xboostState);}setCosmetic(v){this._0x5b7c=Number(v)||11;for(const b of this._0x2a7c)b.cosmetic=this._0x5b7c;}setTag(v){this._0x9d1e=Number(v)||12;for(const b of this._0x2a7c)b.tag=this._0x9d1e;}
  setTornadoSettings(s){this._0xtornadoSettings={...this._0xtornadoSettings,...(s||{})};for(const b of this._0x2a7c)b.setTornadoSettings(this._0xtornadoSettings);}
  setConnectedCount(n){this._0x3e1a=Math.max(0,Number(n)||0);}getConnectedCount(){return this._0x3e1a;}
