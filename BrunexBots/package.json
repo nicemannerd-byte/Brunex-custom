@@ -7,7 +7,8 @@
     "start": "node slither-bots.js",
     "bots": "node cli.js",
     "status": "node cli.js status",
-    "check": "node --check slither-bots.js && node --check cli.js && node --check src/Bot.js && node --check src/BotManager.js && node --check src/SocketHandler.js && node --check BrunexBots-Extensao/content.js && node --check BrunexBots-Extensao/inject.js && node --check BrunexBots-Extensao/mode-controls.js"
+    "check": "node --check slither-bots.js && node --check cli.js && node --check src/Bot.js && node --check src/BotManager.js && node --check src/SocketHandler.js && node --check BrunexBots-Extensao/content.js && node --check BrunexBots-Extensao/inject.js && node --check BrunexBots-Extensao/mode-controls.js",
+    "test": "BOT_LOG=0 node test/bot-lifecycle.js"
   },
   "engines": { "node": ">=18" },
   "dependencies": { "ws": "^8.18.0" }
