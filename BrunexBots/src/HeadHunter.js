@@ -19,6 +19,7 @@ class HeadHunter{
   this.world={snakes:[],foods:[],selfId:null,timestamp:0};
   this.lastTargets=new Map();
   this.roamTargets=new Map();
+  this.exposureFrames=new Map();
  }
  updateWorld(snapshot){
   if(!snapshot||typeof snapshot!=='object')return;
@@ -46,7 +47,12 @@ class HeadHunter{
     const px=finite(p.x),py=finite(p.y);
     nearestBody2=Math.min(nearestBody2,dist2(hx,hy,px,py));
    }
-   const exposed=pts.length<2||nearestBody2>=180*180;
+   const exposedNow=pts.length<2||nearestBody2>=180*180;
+   const key=String(snake.id);
+   const frames=exposedNow?(this.exposureFrames.get(key)||0)+1:0;
+   this.exposureFrames.set(key,Math.min(frames,4));
+   // Require two consecutive observations so a single noisy frame cannot trigger a strike.
+   const exposed=frames>=2;
    if(!exposed)continue;
 
    const vx=finite(snake.vx),vy=finite(snake.vy);
